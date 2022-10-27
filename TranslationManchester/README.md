@@ -31,3 +31,11 @@ University of Manchester
 **Funding**: This work was funded by a Wellcome Trust Translational Partnership Award
 
 **Disclosures**: None
+
+---
+
+## eSupplement
+
+### Flowchart A Study design with recruitment sites and patient separation 
+
+![FlowA](TranslationManchester/img/FlowA.png)
