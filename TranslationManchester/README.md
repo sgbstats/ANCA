@@ -34,8 +34,3 @@ University of Manchester
 
 ---
 
-## eSupplement
-
-### Flowchart A Study design with recruitment sites and patient separation 
-
-![FlowA](TranslationManchester/img/FlowA.png)
