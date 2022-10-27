@@ -4,6 +4,6 @@ This is the public facing repo for the ANCA refinement study and will be built o
 
 Materials for the NHS R Community Conference are in the **NHSRC** folder. 
 
-Translation Manchester [e-supplement](e-supplement.docx) is in the **Translation Manchester** folder. 
+Translation Manchester [e-supplement](Translation Manchester/e-supplement.docx) is in the **Translation Manchester** folder. 
 
 The shiny app is in the Shiny folder
