@@ -18,7 +18,7 @@ ui <- fluidPage(
   ),
   
   # Application title
-  titlePanel("RRS Calculator"),
+  titlePanel("ARRS23 Calculator"),
   
   sidebarLayout(
     sidebarPanel(
@@ -39,7 +39,8 @@ ui <- fluidPage(
                                    selected = 0),
       ),
       conditionalPanel(condition = "input.iftachoose==2",
-                       numericInput("IFTA2", label = h4("Interstitial fibrosis and tubular atrophy percentage"), value = 25, min=0,max=100),
+                       #lazy coding here as it was a numeric input
+                       radioButtons("IFTA2", label = h4("Interstitial fibrosis and tubular atrophy percentage"), c("\u226525%"=26, "<25%"=24)),
       ),
       actionButton("go", "Go"),
     ),
