@@ -18,7 +18,7 @@ ui <- fluidPage(
   ),
   
   # Application title
-  titlePanel("RRS Calculator"),
+  titlePanel("ARRS23 Calculator"),
   
   sidebarLayout(
     sidebarPanel(
@@ -39,7 +39,8 @@ ui <- fluidPage(
                                    selected = 0),
       ),
       conditionalPanel(condition = "input.iftachoose==2",
-                       numericInput("IFTA2", label = h4("Interstitial fibrosis and tubular atrophy percentage"), value = 25, min=0,max=100),
+                       #lazy coding here as it was a numeric input
+                       radioButtons("IFTA2", label = h4("Interstitial fibrosis and tubular atrophy percentage"), c("<25%"="T0", "\u226525%"="T1"), selected = "T0", inline=T),
       ),
       actionButton("go", "Go"),
     ),
@@ -55,16 +56,17 @@ ui <- fluidPage(
       htmlOutput("surv12"),
       htmlOutput("surv36"),
       htmlOutput("surv60"),
-      plotlyOutput("plot"),
+      plotlyOutput("plot"), #the idea is that thiswill become a picotgram but I couldn't the pictogram package to work.
       # tableOutput("debug")
       
-      # htmlOutput("text1")
+      #textOutput("text1")
     )
   )
 )
 
-# Define server logic required to draw a histogram
+
 server <- function(input, output) {
+  #this is the main continuous model. The data sits in the app but there is a formula, see readme
   m0=coxph(Surv(TTEESKDCNSR, ESKD)~I(log(CREATININE))+PERCN+TA, data=Data %>% filter(COHORT=="DEV"))
   colour=function(p)
   {
@@ -91,7 +93,7 @@ server <- function(input, output) {
       ifta=if_else(input$IFTA %in% 0:1, "T0", "T1")
     }else if(input$iftachoose==2)
     {
-      ifta=if_else(input$IFTA2 <=25, "T0", "T1")
+      ifta=input$IFTA2
     }
     
     nd=data.frame("CREATININE"=input$Creatinine, "PERCN"=100*input$Normal/input$Gloms, "TA"=ifta)
@@ -101,6 +103,7 @@ server <- function(input, output) {
     # nd
   })
   
+  output$text1=renderText({input$IFTA2})
   #this might be deprecated
   surv <- eventReactive(input$go, {
     validate(
@@ -110,15 +113,15 @@ server <- function(input, output) {
       need(input$Gloms>0|input$glomchoose==2, "Check glomeruli inputs"),
       need(input$glom2>=0|input$glomchoose==1, "Check glomeruli inputs"),
       need(input$glom2<=100|input$glomchoose==1, "Check glomeruli inputs"),
-      need(input$IFTA2>=0|input$iftachoose==1, "Check TA/IF inputs"),
-      need(input$IFTA2<=100|input$iftachoose==1, "Check TA/IF inputs")
+      # need(input$IFTA2>=0|input$iftachoose==1, "Check TA/IF inputs"),
+      # need(input$IFTA2<=100|input$iftachoose==1, "Check TA/IF inputs")
     )
     if(input$iftachoose==1)
     {
       ifta=if_else(input$IFTA %in% 0:1, "T0", "T1")
     }else if(input$iftachoose==2)
     {
-      ifta=if_else(input$IFTA2 <=25, "T0", "T1")
+      ifta=input$IFTA2
     }
     if(input$glomchoose==1)
     {
@@ -142,8 +145,8 @@ server <- function(input, output) {
       need(input$Gloms>0|input$glomchoose==2, ""),
       need(input$glom2>=0|input$glomchoose==1, ""),
       need(input$glom2<=100|input$glomchoose==1, ""),
-      need(input$IFTA2>=0|input$iftachoose==1, ""),
-      need(input$IFTA2<=100|input$iftachoose==1, "")
+      # need(input$IFTA2>=0|input$iftachoose==1, ""),
+      # need(input$IFTA2<=100|input$iftachoose==1, "")
     )
     contnd=data.frame("CREATININE"=1, "PERCN"=0, "TA"="T0")
     xhz2=survfit(m0, newdata = contnd)
@@ -153,15 +156,16 @@ server <- function(input, output) {
       mutate(logh=log(-log(surv))) 
     
     #survival function
-    x=lm(logh~I(time^-0.1)+I(time^0.1*log(time)), data=bl2 %>% filter(time<10))
+    x=lm(logh~I(time^-0.1)+I(time^0.1*log(time)), data=bl2 %>% filter(time<10)) #for some reason this is being estimated in real time
     logh=predict(x,data.frame("time"=seq(from=0, to=10, by=0.01)))
     if(input$iftachoose==1)
     {
       ifta=if_else(input$IFTA %in% 0:1, "T0", "T1")
     }else if(input$iftachoose==2)
     {
-      ifta=if_else(input$IFTA2 <=25, "T0", "T1")
+      ifta=input$IFTA2
     }
+    
     if(input$glomchoose==1)
     {
       glom=100*input$Normal/input$Gloms
@@ -175,30 +179,35 @@ server <- function(input, output) {
     S0=exp(-exp(logh))
     S0^exp(PI)
     
+    # generateing the data
     data.frame("time"=seq(from=0, to=10, by=0.01),
                surv=S0^exp(PI))
   })
+  
+  #lots of repetition but this ouput the errors
   output$error=renderText({
     validate(
       need(input$Creatinine>0, "Creatinine too low"),
       need(input$Normal<=input$Gloms, "Check glomeruli inputs"),
       need(input$Normal>=0, "Check glomeruli inputs"),
       need(input$Gloms>0, "Check glomeruli inputs"),
-      need(input$IFTA2>=0|input$iftachoose==1, "Check TA/IF inputs"),
-      need(input$IFTA2<=100|input$iftachoose==1, "Check TA/IF inputs")
+      # need(input$IFTA2>=0|input$iftachoose==1, "Check TA/IF inputs"),
+      # need(input$IFTA2<=100|input$iftachoose==1, "Check TA/IF inputs")
     )
   })
   output$surv12=renderText({
     validate(
+      #I have done the error checking multipl times to surpress the rrors on output
       need(input$Creatinine>0, ""),
       need(input$Normal<=input$Gloms|input$glomchoose==2, ""),
       need(input$Normal>=0|input$glomchoose==2, ""),
       need(input$Gloms>0|input$glomchoose==2, ""),
       need(input$glom2>=0|input$glomchoose==1, ""),
       need(input$glom2<=100|input$glomchoose==1, ""),
-      need(input$IFTA2>=0|input$iftachoose==1, ""),
-      need(input$IFTA2<=100|input$iftachoose==1, "")
+      # need(input$IFTA2>=0|input$iftachoose==1, ""),
+      # need(input$IFTA2<=100|input$iftachoose==1, "")
     )
+    #gives survival probability
     prob=100*(smoothsurv() %>% slice_min(abs(time-1)))$surv
     
     
@@ -213,8 +222,8 @@ server <- function(input, output) {
       need(input$Gloms>0|input$glomchoose==2, ""),
       need(input$glom2>=0|input$glomchoose==1, ""),
       need(input$glom2<=100|input$glomchoose==1, ""),
-      need(input$IFTA2>=0|input$iftachoose==1, ""),
-      need(input$IFTA2<=100|input$iftachoose==1, "")
+      # need(input$IFTA2>=0|input$iftachoose==1, ""),
+      # need(input$IFTA2<=100|input$iftachoose==1, "")
     )
     prob=100*(smoothsurv() %>% slice_min(abs(time-3)))$surv
     
@@ -228,21 +237,22 @@ server <- function(input, output) {
       need(input$Gloms>0|input$glomchoose==2, ""),
       need(input$glom2>=0|input$glomchoose==1, ""),
       need(input$glom2<=100|input$glomchoose==1, ""),
-      need(input$IFTA2>=0|input$iftachoose==1, ""),
-      need(input$IFTA2<=100|input$iftachoose==1, "")
+      # need(input$IFTA2>=0|input$iftachoose==1, ""),
+      # need(input$IFTA2<=100|input$iftachoose==1, "")
     )
     prob=100*(smoothsurv() %>% slice_min(abs(time-5)))$surv
     
     paste("<span style=\"font-size: 20px\">5 years: ","<font color=\"",colour(prob),  "\"><b>", round(prob), "%", "</b></font></span>", sep = "")
   })
   
+  #risk points
   points=eventReactive(input$go,{
     if(input$iftachoose==1)
     {
       ifta=if_else(input$IFTA %in% 0:1, "T0", "T1")
     }else if(input$iftachoose==2)
     {
-      ifta=if_else(input$IFTA2 <=25, "T0", "T1")
+      ifta=input$IFTA2
     }
     if(input$glomchoose==1)
     {
@@ -276,8 +286,8 @@ server <- function(input, output) {
       need(input$Gloms>0|input$glomchoose==2, ""),
       need(input$glom2>=0|input$glomchoose==1, ""),
       need(input$glom2<=100|input$glomchoose==1, ""),
-      need(input$IFTA2>=0|input$iftachoose==1, ""),
-      need(input$IFTA2<=100|input$iftachoose==1, "")
+      # need(input$IFTA2>=0|input$iftachoose==1, ""),
+      # need(input$IFTA2<=100|input$iftachoose==1, "")
     )
     paste("<span style=\"font-size: 20px\">Group: ","<font color=\"",colour2((points())$RRS4GR),  "\"><b>", (points())$RRS4GR,  "</b></font></span>", sep = "")
   })
@@ -289,15 +299,15 @@ server <- function(input, output) {
       need(input$Gloms>0|input$glomchoose==2, ""),
       need(input$glom2>=0|input$glomchoose==1, ""),
       need(input$glom2<=100|input$glomchoose==1, ""),
-      need(input$IFTA2>=0|input$iftachoose==1, ""),
-      need(input$IFTA2<=100|input$iftachoose==1, "")
+      # need(input$IFTA2>=0|input$iftachoose==1, ""),
+      # need(input$IFTA2<=100|input$iftachoose==1, "")
     )
     paste("<span style=\"font-size: 20px\">Points: ","<font color=\"",colour2((points())$RRS4GR),  "\"><b>", (points())$RRS4,  "</b></font></span>", sep = "")
   })
   
   
   output$plot=renderPlotly({
-    
+    #ugly plot that needs making nice probably with a pictogram
 
     z=smoothsurv() %>%
       filter(time<10) %>%
