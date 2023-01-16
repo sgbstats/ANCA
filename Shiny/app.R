@@ -23,7 +23,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       numericInput("Creatinine", label = h4("Creatinine (\u03BCmol/L)"), value = 250, min=0),
-      radioButtons("glomchoose", h4("Biopsy input"), c("Raw"=1, "Percentage"=2), selected = 1, inline=T),
+      radioButtons("glomchoose", h4("Glomeruli"), c("Raw"=1, "Percentage"=2), selected = 1, inline=T),
       conditionalPanel(condition = "input.glomchoose==1",
                        numericInput("Gloms", label = h4("Glomeruli on biopsy"), value = 20, min=1),
                        numericInput("Normal", label = h4("Normal glomeruli on biopsy"), value = 10, min=0)
@@ -32,15 +32,16 @@ ui <- fluidPage(
                        numericInput("glom2", label = h4("Normal glomeruli percentage"), value =50, min=0,max=100),
       ),
       
-      radioButtons("iftachoose", h4("IFTA input"), c("Semi-quantative"=1, "Percentage"=2), selected = 1, inline=T),
+      radioButtons("iftachoose", h4("IFTA"), c("Semi-quantative"=1, "Percentage"=2), selected = 1, inline=T),
       conditionalPanel(condition = "input.iftachoose==1",
-                       selectInput("IFTA", label = h4("Interstitial fibrosis and tubular atrophy grading"),
-                                   choices = list("None" = 0, "Mild" = 1, "Mild to Moderate" = 2, "Moderate"=3, "Moderate to Severe"=4, "Severe"=5), 
+                       selectInput("IFTA", label = h4("Grading"),
+                                   choices = list("None or Mild" = 0, "\u2265Mild to Moderate" = 2#, "Mild to Moderate" = 2, "Moderate"=3, "Moderate to Severe"=4, "Severe"=5
+                                                  ), 
                                    selected = 0),
       ),
       conditionalPanel(condition = "input.iftachoose==2",
                        #lazy coding here as it was a numeric input
-                       radioButtons("IFTA2", label = h4("Interstitial fibrosis and tubular atrophy percentage"), c("<25%"="T0", "\u226525%"="T1"), selected = "T0", inline=T),
+                       selectInput("IFTA2", label = h4("Percentage"), choices=list("<25%"="T0", "\u226525%"="T1"), selected = "T0"),
       ),
       actionButton("go", "Go"),
     ),
@@ -56,7 +57,7 @@ ui <- fluidPage(
       htmlOutput("surv12"),
       htmlOutput("surv36"),
       htmlOutput("surv60"),
-      plotlyOutput("plot"), #the idea is that thiswill become a picotgram but I couldn't the pictogram package to work.
+     # plotlyOutput("plot"), #the idea is that thiswill become a picotgram but I couldn't the pictogram package to work.
       # tableOutput("debug")
       
       #textOutput("text1")
