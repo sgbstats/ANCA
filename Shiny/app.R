@@ -22,8 +22,9 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
+      h4(tags$b("Kidney function")),
       numericInput("Creatinine", label = h4("Creatinine (\u03BCmol/L)"), value = 250, min=0),
-      radioButtons("glomchoose", h4("Glomeruli"), c("Raw"=1, "Percentage"=2), selected = 1, inline=T),
+      radioButtons("glomchoose", h4(tags$b("Normal glomeruli")), c("Raw"=1, "Percentage"=2), selected = 1, inline=T),
       conditionalPanel(condition = "input.glomchoose==1",
                        numericInput("Gloms", label = h4("Glomeruli on biopsy"), value = 20, min=1),
                        numericInput("Normal", label = h4("Normal glomeruli on biopsy"), value = 10, min=0)
@@ -31,8 +32,8 @@ ui <- fluidPage(
       conditionalPanel(condition = "input.glomchoose==2",
                        numericInput("glom2", label = h4("Normal glomeruli percentage"), value =50, min=0,max=100),
       ),
-      
-      radioButtons("iftachoose", h4("IFTA"), c("Semi-quantative"=1, "Percentage"=2), selected = 1, inline=T),
+     
+      radioButtons("iftachoose", h4(tags$b("IFTA")), c("Semi-quantative"=1, "Percentage"=2), selected = 1, inline=T),
       conditionalPanel(condition = "input.iftachoose==1",
                        selectInput("IFTA", label = h4("Grading"),
                                    choices = list("None or Mild" = 0, "\u2265Mild to Moderate" = 2#, "Mild to Moderate" = 2, "Moderate"=3, "Moderate to Severe"=4, "Severe"=5
